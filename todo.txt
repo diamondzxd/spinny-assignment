@@ -1,0 +1,10 @@
+- check permissions for is staff for the CREATE, PUT and DELETE methods for everything
+
+- Only the user should be able to delete the Box
+
+- any REGISTERED user should be able to view the inventory
+
+- implement filters based on volume, area, less_than, greater_than in the GET views.
+
+- Figure out how to do the CREATE / UPDATE triggers when we have to maintain some average values.
+Should we use post_save() triggers in the model? Figure out ASAP!

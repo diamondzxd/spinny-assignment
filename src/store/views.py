@@ -7,24 +7,32 @@ from rest_framework import permissions
 from .models import Box
 from .serializers import BoxSerializer
 
+# Defining Staff Permission
+class IsStaffUser(permissions.BasePermission):
+    """
+    Allows access only to staff users.
+    """
+    def has_permission(self, request, view):
+        return request.user and request.user.is_staff
+
 class BoxesAPIView(APIView):
     # add permission to check if user is authenticated
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated, IsStaffUser]
 
     # 1. List all
     def get(self, request, *args, **kwargs):
         '''
-        List all the todo items for given requested user
+        List all the Boxes in the inventory
         '''
-        boxes = Box.objects.filter(created_by = request.user.id)
-        # boxes = Box.objects.all()
+        # boxes = Box.objects.filter(created_by = request.user.id)
+        boxes = Box.objects.all()
         serializer = BoxSerializer(boxes, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # 2. Create
     def post(self, request, *args, **kwargs):
         '''
-        Create the Todo with given todo data
+        Create the Box with given dimensions
         '''
         data = {
             'length': request.data.get('length'),
@@ -95,7 +103,7 @@ class BoxDetailAPIView(APIView):
     # 5. Delete
     def delete(self, request, box_id, *args, **kwargs):
         '''
-        Deletes the todo item with given todo_id if exists
+        Deletes the Box with the given box_id and the created_by id
         '''
         box_instance = self.get_object(box_id, request.user.id)
         if not box_instance:
