@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import BoxAPIView
+from .views import BoxesAPIView,BoxDetailAPIView
 
 urlpatterns = [
-    path('box/', BoxAPIView.as_view()),
+    path('boxes/', BoxesAPIView.as_view()),
+    path('box/<int:box_id>/', BoxDetailAPIView.as_view()),
 ]
