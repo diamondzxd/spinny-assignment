@@ -6,18 +6,38 @@ from rest_framework import status
 from rest_framework import permissions
 from .models import Box
 from .serializers import BoxSerializer
+from django_filters import rest_framework as filters
+from django_filters import FilterSet
 
 # Defining Staff Permission
+
+
 class IsStaffUser(permissions.BasePermission):
     """
     Allows access only to staff users.
     """
+
     def has_permission(self, request, view):
         return request.user and request.user.is_staff
+
+
+class BoxFilter(FilterSet):
+    length_more_than = filters.NumberFilter(
+        field_name="length", lookup_expr='gte')
+    length_less_than = filters.NumberFilter(
+        field_name="length", lookup_expr='lte')
+
+    class Meta:
+        model = Box
+        fields = ['length']
+
 
 class BoxesAPIView(APIView):
     # add permission to check if user is authenticated
     permission_classes = [permissions.IsAuthenticated, IsStaffUser]
+    filter_backends = (filters.DjangoFilterBackend)
+    filterset_class = BoxFilter
+    filterset_fields = ['length_more_than', 'length_less_than']
 
     # 1. List all
     def get(self, request, *args, **kwargs):
@@ -39,7 +59,7 @@ class BoxesAPIView(APIView):
             'width': request.data.get('width'),
             'height': request.data.get('height'),
             'created_by': request.user.id,
-            'updated_by' : request.user.id
+            'updated_by': request.user.id
         }
         serializer = BoxSerializer(data=data)
         if serializer.is_valid():
@@ -58,7 +78,7 @@ class BoxDetailAPIView(APIView):
         Helper method to get the box with given box_id and created_by id
         '''
         try:
-            return Box.objects.get(id=box_id, created_by = user_id)
+            return Box.objects.get(id=box_id, created_by=user_id)
         except Box.DoesNotExist:
             return None
 
@@ -85,16 +105,17 @@ class BoxDetailAPIView(APIView):
         box_instance = self.get_object(box_id, request.user.id)
         if not box_instance:
             return Response(
-                {"res": "Box with the given id does not exists"}, 
+                {"res": "Box with the given id does not exists"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         data = {
             'length': request.data.get('length'),
             'width': request.data.get('width'),
-            'height': request.data.get('height'), 
+            'height': request.data.get('height'),
             'updated_by': request.user.id
         }
-        serializer = BoxSerializer(instance = box_instance, data=data, partial = True)
+        serializer = BoxSerializer(
+            instance=box_instance, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -108,7 +129,7 @@ class BoxDetailAPIView(APIView):
         box_instance = self.get_object(box_id, request.user.id)
         if not box_instance:
             return Response(
-                {"res": "Box with the given id does not exists"}, 
+                {"res": "Box with the given id does not exists"},
                 status=status.HTTP_400_BAD_REQUEST
             )
         box_instance.delete()
